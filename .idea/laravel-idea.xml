@@ -5,4 +5,8 @@
       <list />
     </option>
   </component>
+  <component name="LaravelIdeaMainSettings">
+    <option name="frameworkFound" value="true" />
+    <option name="laravelBasePath" value="backend" />
+  </component>
 </project>

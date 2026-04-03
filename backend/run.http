@@ -1,0 +1,182 @@
+// Test API - E-Commerce Merah Putih
+
+// HOW TO USE:
+// 1. Jalankan Register atau Login dulu
+// 2. Copy token dari response
+// 3. Paste ke token di bawah ini
+// 4. untuk reset-password, butuh FE untuk menerima token, tapi bila blm ada FE
+//    kita bisa lakukan testing khusus BE dengan cara:
+//    - masuk ke AppServiceProvider.php
+//    - pada bagian boot, comment redirect FE, dan aktifkan redirect testing BE
+//    - jalankan forgot-password, klik reset link yang dikirim ke email, lalu copy token dari URL,
+//      dan paste ke resetToken di bawah
+
+
+@baseUrl = http://127.0.0.1:8000
+@contentType = application/json
+@accept = application/json
+@name = Dika Ganteng
+@email = handikahatsudzuki@gmail.com
+@password = AnjayMabar
+@newPassword = AnjayGurinjayWadidaw
+
+// Paste token hasil login/register di sini
+@token = 4|CHfDEUv2PG7sGNL5wo8LnfuaZGUpqqYcoJQa3tey7a7a7e1c
+#1|g37UmIMm6090xduzYTivMKWLGYrqXYEhCt2JV3jmc96ca413
+
+// Paste reset token dari email di sini
+@resetToken = aca28ac9f1476fa25da99feb199c1fb6f3307e07e50f75038419c06364b9e428
+
+// Paste data dari link verifikasi email
+@verifyId = 2
+@verifyHash = 064cd10cd5b82f5fbf582daa1f8bc9cb4244515d
+@verifyExpires = 1775238638
+@verifySignature = 594facb1430e6ad7e4fc4ce1498b653a2e9ae125718ddc350312621e30030344
+
+
+### Register - Success
+POST {{baseUrl}}/api/register
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "password_confirmation": "{{password}}"
+}
+
+
+### Register - Password Tidak Cocok
+POST {{baseUrl}}/api/register
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "password_confirmation": "wrongpassword"
+}
+
+
+### Login - Success
+POST {{baseUrl}}/api/login
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+
+### Login - Wrong Password
+POST {{baseUrl}}/api/login
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "email": "{{email}}",
+    "password": "wrongpassword"
+}
+
+
+### Login - Email Tidak Terdaftar
+POST {{baseUrl}}/api/login
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "email": "tidakada@example.com",
+    "password": "{{password}}"
+}
+
+
+### Logout - Success
+POST {{baseUrl}}/api/logout
+Content-Type: {{contentType}}
+Accept: {{accept}}
+Authorization: Bearer {{token}}
+
+
+### Logout - Tanpa Token
+POST {{baseUrl}}/api/logout
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+
+### Forgot Password - Success
+POST {{baseUrl}}/api/forgot-password
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "email": "{{email}}"
+}
+
+
+### Forgot Password - Email Tidak Terdaftar
+POST {{baseUrl}}/api/forgot-password
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "email": "tidakada@example.com"
+}
+
+
+### Reset Password - Success
+POST {{baseUrl}}/api/reset-password
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "token": "{{resetToken}}",
+    "email": "{{email}}",
+    "password": "{{newPassword}}",
+    "password_confirmation": "{{newPassword}}"
+}
+
+
+### Reset Password - Token Tidak Valid
+POST {{baseUrl}}/api/reset-password
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+{
+    "token": "invalid-token-xyz",
+    "email": "{{email}}",
+    "password": "{{newPassword}}",
+    "password_confirmation": "{{newPassword}}"
+}
+
+
+### Verify Email
+GET {{baseUrl}}/api/verify-email/{{verifyId}}/{{verifyHash}}?expires={{verifyExpires}}&signature={{verifySignature}}
+Accept: {{accept}}
+Authorization: Bearer {{token}}
+
+
+### Resend Verification Email - Success
+POST {{baseUrl}}/api/email/verification-notification
+Content-Type: {{contentType}}
+Accept: {{accept}}
+Authorization: Bearer {{token}}
+
+
+### Resend Verification Email - Tanpa Token
+POST {{baseUrl}}/api/email/verification-notification
+Content-Type: {{contentType}}
+Accept: {{accept}}
+
+
+### Get Current User - Success
+GET {{baseUrl}}/api/user
+Accept: {{accept}}
+Authorization: Bearer {{token}}
+
+
+### Get Current User - Tanpa Token
+GET {{baseUrl}}/api/user
+Accept: {{accept}}
