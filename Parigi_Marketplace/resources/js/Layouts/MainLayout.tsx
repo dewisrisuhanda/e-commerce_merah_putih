@@ -227,7 +227,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 FOOTER
             ══════════════════════════════════ */}
             <footer className="bg-[#0f2318] border-t border-[#74c69d]/10 py-5 text-center text-white/30 text-sm">
-                © {new Date().getFullYear()} Parigi Marketplace — Hasil Tani &amp; Nelayan Parigi
+                © {new Date().getFullYear()} Parigi Marketplace - Hasil Tani &amp; Nelayan Parigi
             </footer>
         </div>
     );
