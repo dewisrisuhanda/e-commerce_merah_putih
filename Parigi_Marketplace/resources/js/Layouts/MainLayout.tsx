@@ -10,12 +10,12 @@ interface Props {
 export default function MainLayout({ children, keyword = '' }: Props) {
     const { auth } = usePage<PageProps>().props;
     const user = auth?.user ?? null;
+    const isAdmin = user?.role === 'admin';
 
     const [searchQuery, setSearchQuery] = useState(keyword);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Bug fix #2: auto-close mobile menu saat resize ke desktop (lg = 1024px)
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth >= 1024) setMobileMenuOpen(false);
@@ -24,7 +24,6 @@ export default function MainLayout({ children, keyword = '' }: Props) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // ── Helpers ──────────────────────────────────────────────
     const render = (name: string) => route().has(name) ? route(name) : '#';
 
     const handleSearch = (e: React.FormEvent) => {
@@ -36,6 +35,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
     const handleLogout = () => {
         router.post(render('logout'));
         setDropdownOpen(false);
+        setMobileMenuOpen(false);
     };
 
     const initials = user?.name ? user.name.slice(0, 2).toUpperCase() : '';
@@ -51,9 +51,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
     return (
         <div className="min-h-screen bg-[#f8faf8]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-            {/* ══════════════════════════════════
-                NAVBAR
-            ══════════════════════════════════ */}
+            {/* NAVBAR */}
             <nav
                 className="fixed top-0 left-0 right-0 z-[999] flex items-center justify-between gap-4 px-5 md:px-10 h-16 border-b border-[#74c69d]/18"
                 style={{ background: 'rgba(26,58,42,0.96)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
@@ -76,9 +74,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                     ))}
                 </ul>
 
-                {/* Search Bar
-                    Fix: pakai onSubmit di form, bukan onclick di button
-                    Fix: hilangkan outline biru dengan className yg tepat */}
+                {/* Search Bar */}
                 <form
                     onSubmit={handleSearch}
                     className="hidden sm:flex items-center flex-1 max-w-[240px] border border-[#74c69d]/25 rounded-full px-2 py-1.5 gap-0"
@@ -105,32 +101,82 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 <div className="flex items-center gap-2 flex-shrink-0">
                     {user ? (
                         <>
-                            <Link href={render('cart.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛒</Link>
-                            <Link href={render('orders.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛍️</Link>
-                            {user.role === 'admin' && (
-                                <Link href={render('admin.dashboard')} className="hidden sm:inline-flex text-[0.7rem] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full no-underline transition" style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}>
+                            {isAdmin ? (
+                                <Link
+                                    href={render('admin.dashboard')}
+                                    className="hidden sm:inline-flex items-center gap-1.5 text-[0.78rem] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full no-underline transition"
+                                    style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}
+                                >
                                     🛡 Admin
                                 </Link>
+                            ) : (
+                                /* - User: cart + pesanan ── */
+                                <>
+                                    <Link
+                                        href={render('cart.index')}
+                                        className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline"
+                                        title="Keranjang"
+                                    >
+                                        🛒
+                                    </Link>
+                                    <Link
+                                        href={render('orders.index')}
+                                        className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline"
+                                        title="Pesanan Saya"
+                                    >
+                                        🛍️
+                                    </Link>
+                                </>
                             )}
-                            {/* User Dropdown */}
+
+                            {/* User Dropdown — sama untuk semua role */}
                             <div className="relative">
                                 <button
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="flex items-center gap-1.5 border border-[#74c69d]/20 rounded-full pl-1.5 pr-3 py-1 text-white/85 text-[0.82rem] font-medium cursor-pointer"
+                                    className="hidden lg:flex items-center gap-1.5 border border-[#74c69d]/20 rounded-full pl-1.5 pr-3 py-1 text-white/85 text-[0.82rem] font-medium cursor-pointer"
                                     style={{ background: 'rgba(255,255,255,0.08)' }}
                                 >
-                                    <div className="w-6 h-6 rounded-full bg-[#40916c] text-white text-[0.68rem] font-bold flex items-center justify-center">{initials}</div>
+                                    <div className="w-6 h-6 rounded-full bg-[#40916c] text-white text-[0.68rem] font-bold flex items-center justify-center">
+                                        {initials}
+                                    </div>
                                     <span className="hidden md:inline max-w-[100px] truncate">{user.name}</span>
                                     <span className="text-[0.6rem] text-white/40">▾</span>
                                 </button>
+
                                 {dropdownOpen && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                                         <div className="absolute right-0 top-full mt-2 z-20 min-w-[180px] rounded-xl overflow-hidden py-1.5 bg-white shadow-[0_8px_32px_rgba(26,58,42,0.18)]">
-                                            <Link href={render('orders.index')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>🛍️ Pesanan Saya</Link>
-                                            <Link href={render('profile.edit')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>👤 Profil</Link>
+                                            {/* Dropdown items berbeda per role */}
+                                            {isAdmin ? (
+                                                <>
+                                                    <Link href={render('admin.dashboard')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>
+                                                        🛡 Dashboard Admin
+                                                    </Link>
+                                                    <Link href={render('profile.edit')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>
+                                                        👤 Profil Saya
+                                                    </Link>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Link href={render('orders.index')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>
+                                                        🛍️ Pesanan Saya
+                                                    </Link>
+                                                    <Link href={render('cart.index')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>
+                                                        🛒 Keranjang
+                                                    </Link>
+                                                    <Link href={render('profile.edit')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>
+                                                        👤 Profil Saya
+                                                    </Link>
+                                                </>
+                                            )}
                                             <hr className="my-1 border-gray-100" />
-                                            <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-[0.84rem] text-red-500 hover:bg-red-50 bg-transparent border-none cursor-pointer text-left">🚪 Logout</button>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-[0.84rem] text-red-500 hover:bg-red-50 bg-transparent border-none cursor-pointer text-left"
+                                            >
+                                                🚪 Logout
+                                            </button>
                                         </div>
                                     </>
                                 )}
@@ -138,8 +184,12 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                         </>
                     ) : (
                         <>
-                            <Link href={render('login')} className="text-white/75 text-[0.82rem] font-medium px-3.5 py-1.5 rounded-full border border-white/20 transition hover:text-white hover:border-white/50 no-underline whitespace-nowrap">Masuk</Link>
-                            <Link href={render('register')} className="text-[#1a3a2a] text-[0.82rem] font-bold px-3.5 py-1.5 rounded-full transition hover:opacity-90 no-underline whitespace-nowrap" style={{ background: '#e9c46a' }}>Daftar</Link>
+                            <Link href={render('login')} className="text-white/75 text-[0.82rem] font-medium px-3.5 py-1.5 rounded-full border border-white/20 transition hover:text-white hover:border-white/50 no-underline whitespace-nowrap">
+                                Masuk
+                            </Link>
+                            <Link href={render('register')} className="text-[#1a3a2a] text-[0.82rem] font-bold px-3.5 py-1.5 rounded-full transition hover:opacity-90 no-underline whitespace-nowrap" style={{ background: '#e9c46a' }}>
+                                Daftar
+                            </Link>
                         </>
                     )}
 
@@ -156,9 +206,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 </div>
             </nav>
 
-            {/* ══════════════════════════════════
-                MOBILE MENU DROPDOWN
-            ══════════════════════════════════ */}
+            {/* MOBILE MENU DROPDOWN */}
             {mobileMenuOpen && (
                 <>
                     <div className="fixed inset-0 z-[998]" onClick={() => setMobileMenuOpen(false)} />
@@ -167,7 +215,11 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                         style={{ background: 'rgba(26,58,42,0.98)', backdropFilter: 'blur(16px)' }}
                     >
                         {/* Mobile Search */}
-                        <form onSubmit={handleSearch} className="flex items-center border border-[#74c69d]/25 rounded-full overflow-hidden px-3 gap-1 mb-3" style={{ background: 'rgba(255,255,255,0.09)' }}>
+                        <form
+                            onSubmit={handleSearch}
+                            className="flex items-center border border-[#74c69d]/25 rounded-full overflow-hidden px-3 gap-1 mb-3"
+                            style={{ background: 'rgba(255,255,255,0.09)' }}
+                        >
                             <span className="text-white/35 text-sm">🔍</span>
                             <input
                                 type="text"
@@ -177,43 +229,70 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                                 className="flex-1 bg-transparent border-none text-white text-sm py-2 placeholder:text-white/35"
                                 style={{ outline: 'none', boxShadow: 'none' }}
                             />
-                            <button type="submit" className="bg-[#40916c] text-white text-xs font-semibold rounded-full px-3 py-1 border-none cursor-pointer">Cari</button>
+                            <button type="submit" className="bg-[#40916c] text-white text-xs font-semibold rounded-full px-3 py-1 border-none cursor-pointer">
+                                Cari
+                            </button>
                         </form>
 
                         {/* Mobile Nav Links */}
-                        {NAV_LINKS.map((item, i) => (
-                            <Link key={i} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block py-2.5 px-3 text-white/75 text-sm font-medium border-b border-[#74c69d]/10 last:border-0 no-underline hover:text-[#74c69d]">
+                        {!isAdmin && NAV_LINKS.map((item, i) => (
+                            <Link
+                                key={i}
+                                href={item.href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-2.5 px-3 text-white/75 text-sm font-medium border-b border-[#74c69d]/10 last:border-0 no-underline hover:text-[#74c69d]"
+                            >
                                 {item.label}
                             </Link>
                         ))}
 
-                        {/* Mobile Auth/User Links */}
+                        {/* Auth links */}
                         {user ? (
                             <div className="mt-2 pt-2 border-t border-[#74c69d]/15 flex flex-col gap-1">
-                                <Link href={render('cart.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛒 Keranjang</Link>
-                                <Link href={render('orders.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛍️ Pesanan Saya</Link>
-                                <button onClick={handleLogout} className="flex items-center gap-2 py-2 px-3 text-red-400 text-sm bg-transparent border-none cursor-pointer text-left">🚪 Logout</button>
+                                {isAdmin ? (
+                                    <Link href={render('admin.dashboard')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-[#e9c46a] text-sm font-semibold no-underline">
+                                        🛡 Dashboard Admin
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link href={render('cart.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">
+                                            🛒 Keranjang
+                                        </Link>
+                                        <Link href={render('orders.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">
+                                            🛍️ Pesanan Saya
+                                        </Link>
+                                    </>
+                                )}
+                                <Link href={render('profile.edit')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">
+                                    👤 Profil Saya
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 py-2 px-3 text-red-400 text-sm bg-transparent border-none cursor-pointer text-left"
+                                >
+                                    🚪 Logout
+                                </button>
                             </div>
                         ) : (
                             <div className="mt-2 pt-2 border-t border-[#74c69d]/15 flex gap-2">
-                                <Link href={render('login')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-white/75 text-sm border border-white/20 rounded-full no-underline hover:text-white">Masuk</Link>
-                                <Link href={render('register')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-[#1a3a2a] text-sm font-bold rounded-full no-underline" style={{ background: '#e9c46a' }}>Daftar</Link>
+                                <Link href={render('login')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-white/75 text-sm border border-white/20 rounded-full no-underline hover:text-white">
+                                    Masuk
+                                </Link>
+                                <Link href={render('register')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-[#1a3a2a] text-sm font-bold rounded-full no-underline" style={{ background: '#e9c46a' }}>
+                                    Daftar
+                                </Link>
                             </div>
                         )}
                     </div>
                 </>
             )}
 
-            {/* ══════════════════════════════════
-                PAGE CONTENT
-            ══════════════════════════════════ */}
+            {/* PAGE CONTENT */}
             <div className="pt-16">
                 {children}
             </div>
 
-            {/* ══════════════════════════════════
-                FOOTER
-            ══════════════════════════════════ */}
+            {/* FOOTER */}
             <footer className="bg-[#0f2318] border-t border-[#74c69d]/10 py-5 text-center text-white/30 text-sm">
                 © {new Date().getFullYear()} Parigi Marketplace - Hasil Tani &amp; Nelayan Parigi
             </footer>
