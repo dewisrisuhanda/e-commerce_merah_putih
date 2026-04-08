@@ -25,27 +25,27 @@ export default function MainLayout({ children, keyword = '' }: Props) {
     }, []);
 
     // ── Helpers ──────────────────────────────────────────────
-    const r = (name: string) => route().has(name) ? route(name) : '#';
+    const render = (name: string) => route().has(name) ? route(name) : '#';
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
-        router.get(r('products.index'), { search: searchQuery });
+        router.get(render('products.index'), { search: searchQuery });
     };
 
     const handleLogout = () => {
-        router.post(r('logout'));
+        router.post(render('logout'));
         setDropdownOpen(false);
     };
 
     const initials = user?.name ? user.name.slice(0, 2).toUpperCase() : '';
 
     const NAV_LINKS = [
-        { href: '/#about',    label: 'Tentang Parigi', isAnchor: true },
-        { href: '/#map',      label: 'Peta Wilayah',   isAnchor: true },
-        { href: '/#features', label: 'Ciri Khas',       isAnchor: true },
-        { href: '/#products', label: 'Produk Lokal',    isAnchor: true },
-        { href: r('products.index'), label: 'Marketplace', isAnchor: false },
+        { href: '/#about',    label: 'Tentang Parigi' },
+        { href: '/#map',      label: 'Peta Wilayah' },
+        { href: '/#features', label: 'Ciri Khas' },
+        { href: '/#products', label: 'Produk Lokal' },
+        { href: render('products.index'), label: 'Marketplace' },
     ];
 
     return (
@@ -59,7 +59,7 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 style={{ background: 'rgba(26,58,42,0.96)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
             >
                 {/* Brand */}
-                <Link href={r('home')} className="flex-shrink-0 no-underline" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <Link href={render('home')} className="flex-shrink-0 no-underline" style={{ fontFamily: "'Playfair Display', serif" }}>
                     <span className="text-[1.2rem] font-bold text-[#d8f3dc]">
                         🌿 Parigi<span className="text-[#e9c46a]">Market</span>
                     </span>
@@ -69,15 +69,9 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 <ul className="hidden lg:flex items-center gap-1 list-none m-0 p-0 flex-shrink-0">
                     {NAV_LINKS.map((item, i) => (
                         <li key={i}>
-                            {item.isAnchor ? (
-                                <a href={item.href} className="text-white/70 text-[0.82rem] font-medium px-3 py-1.5 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">
-                                    {item.label}
-                                </a>
-                            ) : (
-                                <Link href={item.href} className="text-white/70 text-[0.82rem] font-medium px-3 py-1.5 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">
-                                    {item.label}
-                                </Link>
-                            )}
+                            <Link href={item.href} className="text-white/70 text-[0.82rem] font-medium px-3 py-1.5 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">
+                                {item.label}
+                            </Link>
                         </li>
                     ))}
                 </ul>
@@ -111,10 +105,10 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 <div className="flex items-center gap-2 flex-shrink-0">
                     {user ? (
                         <>
-                            <Link href={r('cart.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛒</Link>
-                            <Link href={r('orders.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛍️</Link>
+                            <Link href={render('cart.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛒</Link>
+                            <Link href={render('orders.index')} className="hidden sm:inline-flex text-white/70 text-lg px-2 py-1 rounded-full transition hover:text-[#74c69d] hover:bg-[#74c69d]/10 no-underline">🛍️</Link>
                             {user.role === 'admin' && (
-                                <Link href={r('admin.dashboard')} className="hidden sm:inline-flex text-[0.7rem] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full no-underline transition" style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}>
+                                <Link href={render('admin.dashboard')} className="hidden sm:inline-flex text-[0.7rem] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full no-underline transition" style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}>
                                     🛡 Admin
                                 </Link>
                             )}
@@ -133,8 +127,8 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                                         <div className="absolute right-0 top-full mt-2 z-20 min-w-[180px] rounded-xl overflow-hidden py-1.5 bg-white shadow-[0_8px_32px_rgba(26,58,42,0.18)]">
-                                            <Link href={r('orders.index')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>🛍️ Pesanan Saya</Link>
-                                            <Link href={r('profile.edit')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>👤 Profil</Link>
+                                            <Link href={render('orders.index')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>🛍️ Pesanan Saya</Link>
+                                            <Link href={render('profile.edit')} className="flex items-center gap-2 px-3 py-2 text-[0.84rem] text-gray-700 hover:bg-[#f4faf6] no-underline" onClick={() => setDropdownOpen(false)}>👤 Profil</Link>
                                             <hr className="my-1 border-gray-100" />
                                             <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-[0.84rem] text-red-500 hover:bg-red-50 bg-transparent border-none cursor-pointer text-left">🚪 Logout</button>
                                         </div>
@@ -144,8 +138,8 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                         </>
                     ) : (
                         <>
-                            <Link href={r('login')} className="text-white/75 text-[0.82rem] font-medium px-3.5 py-1.5 rounded-full border border-white/20 transition hover:text-white hover:border-white/50 no-underline whitespace-nowrap">Masuk</Link>
-                            <Link href={r('register')} className="text-[#1a3a2a] text-[0.82rem] font-bold px-3.5 py-1.5 rounded-full transition hover:opacity-90 no-underline whitespace-nowrap" style={{ background: '#e9c46a' }}>Daftar</Link>
+                            <Link href={render('login')} className="text-white/75 text-[0.82rem] font-medium px-3.5 py-1.5 rounded-full border border-white/20 transition hover:text-white hover:border-white/50 no-underline whitespace-nowrap">Masuk</Link>
+                            <Link href={render('register')} className="text-[#1a3a2a] text-[0.82rem] font-bold px-3.5 py-1.5 rounded-full transition hover:opacity-90 no-underline whitespace-nowrap" style={{ background: '#e9c46a' }}>Daftar</Link>
                         </>
                     )}
 
@@ -188,28 +182,22 @@ export default function MainLayout({ children, keyword = '' }: Props) {
 
                         {/* Mobile Nav Links */}
                         {NAV_LINKS.map((item, i) => (
-                            item.isAnchor ? (
-                                <a key={i} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block py-2.5 px-3 text-white/75 text-sm font-medium border-b border-[#74c69d]/10 last:border-0 no-underline hover:text-[#74c69d]">
-                                    {item.label}
-                                </a>
-                            ) : (
-                                <Link key={i} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block py-2.5 px-3 text-white/75 text-sm font-medium border-b border-[#74c69d]/10 last:border-0 no-underline hover:text-[#74c69d]">
-                                    {item.label}
-                                </Link>
-                            )
+                            <Link key={i} href={item.href} onClick={() => setMobileMenuOpen(false)} className="block py-2.5 px-3 text-white/75 text-sm font-medium border-b border-[#74c69d]/10 last:border-0 no-underline hover:text-[#74c69d]">
+                                {item.label}
+                            </Link>
                         ))}
 
                         {/* Mobile Auth/User Links */}
                         {user ? (
                             <div className="mt-2 pt-2 border-t border-[#74c69d]/15 flex flex-col gap-1">
-                                <Link href={r('cart.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛒 Keranjang</Link>
-                                <Link href={r('orders.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛍️ Pesanan Saya</Link>
+                                <Link href={render('cart.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛒 Keranjang</Link>
+                                <Link href={render('orders.index')} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 py-2 px-3 text-white/75 text-sm no-underline hover:text-[#74c69d]">🛍️ Pesanan Saya</Link>
                                 <button onClick={handleLogout} className="flex items-center gap-2 py-2 px-3 text-red-400 text-sm bg-transparent border-none cursor-pointer text-left">🚪 Logout</button>
                             </div>
                         ) : (
                             <div className="mt-2 pt-2 border-t border-[#74c69d]/15 flex gap-2">
-                                <Link href={r('login')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-white/75 text-sm border border-white/20 rounded-full no-underline hover:text-white">Masuk</Link>
-                                <Link href={r('register')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-[#1a3a2a] text-sm font-bold rounded-full no-underline" style={{ background: '#e9c46a' }}>Daftar</Link>
+                                <Link href={render('login')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-white/75 text-sm border border-white/20 rounded-full no-underline hover:text-white">Masuk</Link>
+                                <Link href={render('register')} onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 text-[#1a3a2a] text-sm font-bold rounded-full no-underline" style={{ background: '#e9c46a' }}>Daftar</Link>
                             </div>
                         )}
                     </div>

@@ -80,14 +80,14 @@ export default function Index({ products, categories, filters }: Props) {
         router.get(route().has('products.index') ? route('products.index') : '#', {
             search,
             category: filters.category,
-        }, { preserveState: true });
+        }, { preserveState: true, preserveScroll: true });
     };
 
     const handleCategoryFilter = (categoryName: string) => {
         router.get(route().has('products.index') ? route('products.index') : '#', {
             search: filters.search,
             category: categoryName === 'Semua' ? '' : categoryName,
-        }, { preserveState: true });
+        }, { preserveState: true, preserveScroll: true });
     };
 
     const activeCategory = filters.category || 'Semua';
@@ -253,19 +253,24 @@ export default function Index({ products, categories, filters }: Props) {
                 {products.last_page > 1 && (
                     <div className="flex justify-center gap-2 mt-8 flex-wrap">
                         {products.links.map((link, i) => (
-                            <button
-                                key={i}
-                                disabled={!link.url}
-                                onClick={() => link.url && router.get(link.url)}
-                                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer border
-                                    ${link.active
-                                        ? 'bg-[#40916c] text-white border-[#40916c]'
-                                        : link.url
-                                            ? 'bg-white text-[#2d6a4f] border-[#40916c]/30 hover:bg-[#40916c]/10'
-                                            : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                                    }`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
+                            link.url ? (
+                                <Link
+                                    key={i}
+                                    href={link.url}
+                                    preserveState
+                                    preserveScroll
+                                    className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition border
+                                                ${link.active ? 'bg-[#40916c] text-white border-[#40916c]'
+                                                : 'bg-white text-[#2d6a4f] border-[#40916c]/30 hover:bg-[#40916c]/10'}`}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                />
+                            ) : (
+                                <span
+                                    key={i}
+                                    className="px-3.5 py-1.5 rounded-lg text-sm font-medium border bg-gray-50 text-gray-300 border-gray-100"
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                />
+                            )
                         ))}
                     </div>
                 )}
