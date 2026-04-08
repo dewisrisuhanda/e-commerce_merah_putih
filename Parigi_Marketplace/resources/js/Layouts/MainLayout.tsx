@@ -101,15 +101,15 @@ export default function MainLayout({ children, keyword = '' }: Props) {
                 <div className="flex items-center gap-2 flex-shrink-0">
                     {user ? (
                         <>
-                            {isAdmin ? (
-                                <Link
-                                    href={render('admin.dashboard')}
-                                    className="hidden sm:inline-flex items-center gap-1.5 text-[0.78rem] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full no-underline transition"
-                                    style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}
-                                >
-                                    🛡 Admin
-                                </Link>
-                            ) : (
+                            {!isAdmin &&  (
+                                // <Link
+                                //     href={render('admin.dashboard')}
+                                //     className="hidden sm:inline-flex items-center gap-1.5 text-[0.78rem] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full no-underline transition"
+                                //     style={{ background: 'rgba(233,196,106,0.18)', color: '#e9c46a' }}
+                                // >
+                                //     🛡 Admin
+                                // </Link>
+
                                 /* - User: cart + pesanan ── */
                                 <>
                                     <Link
