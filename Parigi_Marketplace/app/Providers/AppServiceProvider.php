@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\Admin\CategoryService;
+use App\Services\Admin\DashboardService;
+use App\Services\Admin\ReportService;
+use App\Services\Admin\UserService;
 use App\Services\CartService;
 use App\Services\HomeService;
 use App\Services\OrderService;
@@ -16,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
         ProductService::class => \App\Services\Implements\ProductService::class,
         CartService::class => \App\Services\Implements\CartService::class,
         OrderService::class => \App\Services\Implements\OrderService::class,
+
+        CategoryService::class => \App\Services\Admin\Implements\CategoryService::class,
+        DashboardService::class => \App\Services\Admin\Implements\DashboardService::class,
+        ReportService::class => \App\Services\Admin\Implements\ReportService::class,
+        UserService::class => \App\Services\Admin\Implements\UserService::class,
+        \App\Services\Admin\OrderService::class => \App\Services\Admin\Implements\OrderService::class,
+        \App\Services\Admin\ProductService::class => \App\Services\Admin\Implements\ProductService::class,
     ];
     /**
      * Register any application services.
