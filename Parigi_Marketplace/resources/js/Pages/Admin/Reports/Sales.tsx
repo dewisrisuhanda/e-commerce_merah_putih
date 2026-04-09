@@ -31,7 +31,7 @@ export default function Sales({ totalSold, totalOrders, totalRevenue, products }
 
     return (
         <AdminLayout title="Laporan Penjualan" breadcrumb="Admin → Laporan → Penjualan" activeMenu="sales">
-            <Head title="Laporan Penjualan — Admin" />
+            <Head title="Laporan Penjualan" />
 
             <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

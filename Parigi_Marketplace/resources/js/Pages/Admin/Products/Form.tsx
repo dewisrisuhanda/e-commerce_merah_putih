@@ -53,7 +53,7 @@ export default function Form({ product, categories }: FormProps) {
     breadcrumb={`Admin → Produk → ${isEdit ? 'Edit' : 'Tambah'}`}
     activeMenu="products"
     >
-    <Head title={`${isEdit ? 'Edit' : 'Tambah'} Produk — Admin`} />
+    <Head title={`${isEdit ? 'Edit' : 'Tambah'} Produk`} />
 
     <div className="max-w-2xl">
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">

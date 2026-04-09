@@ -108,7 +108,7 @@ export default function Dashboard({ stats, recentProducts, recentOrders, categor
 
     return (
         <AdminLayout title="Dashboard" breadcrumb="Admin → Dashboard" activeMenu="dashboard">
-            <Head title="Dashboard — Admin Parigi" />
+            <Head title="Admin Dashboard" />
 
             <div className="space-y-6">
 

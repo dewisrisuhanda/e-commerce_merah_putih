@@ -49,7 +49,7 @@ export default function Show({ order }: ShowProps) {
 
     return (
         <AdminLayout title={`Detail Pesanan #${order.order_number}`} breadcrumb="Admin → Pesanan → Detail" activeMenu="orders">
-            <Head title={`Pesanan #${order.order_number} — Admin`} />
+            <Head title={`Pesanan #${order.order_number}`} />
 
             <div className="max-w-3xl space-y-5">
                 {/* Info + Status */}

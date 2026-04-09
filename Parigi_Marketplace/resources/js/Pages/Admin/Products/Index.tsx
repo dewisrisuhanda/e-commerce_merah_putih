@@ -26,7 +26,7 @@ export default function Index({ products }: Props) {
 
     return (
         <AdminLayout title="Kelola Produk" breadcrumb="Admin → Produk" activeMenu="products">
-            <Head title="Kelola Produk — Admin" />
+            <Head title="Kelola Produk" />
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>

@@ -19,7 +19,7 @@ export default function Register() {
 
     return (
         <>
-            <Head title="Daftar — Parigi Market" />
+            <Head title="Daftar" />
 
             <div
                 className="relative flex min-h-screen w-full items-center justify-center overflow-hidden py-10"

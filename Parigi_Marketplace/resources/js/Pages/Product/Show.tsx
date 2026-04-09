@@ -42,7 +42,7 @@ export default function Show({ product, auth }: Props) {
 
     return (
         <MainLayout>
-            <Head title={`${product.name} — Parigi Market`} />
+            <Head title={`${product.name}`} />
 
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 

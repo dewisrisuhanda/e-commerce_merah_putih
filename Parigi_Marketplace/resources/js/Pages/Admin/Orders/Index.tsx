@@ -33,7 +33,7 @@ export default function AdminOrdersIndex({ orders }: Props) {
 
     return (
         <AdminLayout title="Kelola Pesanan" breadcrumb="Admin → Pesanan" activeMenu="orders">
-            <Head title="Kelola Pesanan — Admin" />
+            <Head title="Kelola Pesanan" />
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">

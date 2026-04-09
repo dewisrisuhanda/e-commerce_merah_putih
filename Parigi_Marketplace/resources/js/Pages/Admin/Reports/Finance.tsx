@@ -30,7 +30,7 @@ const TXN_STATUS_STYLES: Record<string, { bg: string; text: string; label: strin
 export default function Finance({ totalIncome, totalPending, totalCanceled, transactions }: FinanceProps) {
     return (
         <AdminLayout title="Laporan Keuangan" breadcrumb="Admin → Laporan → Keuangan" activeMenu="finance">
-            <Head title="Laporan Keuangan — Admin" />
+            <Head title="Laporan Keuangan" />
 
             <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

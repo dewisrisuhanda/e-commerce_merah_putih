@@ -41,7 +41,7 @@ export default function Index({ cartItems, total, total_formatted }: Props) {
 
     return (
         <MainLayout>
-            <Head title="Keranjang Belanja — Parigi Market" />
+            <Head title="Keranjang Belanja" />
 
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 

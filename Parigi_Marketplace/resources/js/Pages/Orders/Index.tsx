@@ -41,7 +41,7 @@ export default function Index({ orders }: Props) {
 
     return (
         <MainLayout>
-            <Head title="Riwayat Pesanan — Parigi Market" />
+            <Head title="Riwayat Pesanan" />
 
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 

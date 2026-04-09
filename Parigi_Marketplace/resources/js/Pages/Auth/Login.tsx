@@ -22,7 +22,7 @@ export default function Login({ status, canResetPassword }: Props) {
 
     return (
         <>
-            <Head title="Masuk — Parigi Market" />
+            <Head title="Masuk" />
 
             {/*
             =============================================

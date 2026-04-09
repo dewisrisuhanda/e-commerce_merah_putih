@@ -48,7 +48,7 @@ export default function Show({ order }: Props) {
 
     return (
         <MainLayout>
-            <Head title={`Pesanan ${order.order_number} — Parigi Market`} />
+            <Head title={`Pesanan ${order.order_number}`} />
 
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 

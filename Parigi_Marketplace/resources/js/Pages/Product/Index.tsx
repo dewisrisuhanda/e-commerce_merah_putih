@@ -94,7 +94,7 @@ export default function Index({ products, categories, filters }: Props) {
 
     return (
         <MainLayout keyword={filters.search}>
-            <Head title="Marketplace — Parigi Market" />
+            <Head title="Produk" />
 
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 

@@ -91,7 +91,7 @@ export default function Welcome({ auth, bestProducts, totalProducts }: Props) {
 
     return (
         <MainLayout>
-            <Head title="Parigi Market — Produk Lokal Parigi, Pangandaran" />
+            <Head title="Home" />
 
             <link
                 href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
@@ -301,7 +301,7 @@ export default function Welcome({ auth, bestProducts, totalProducts }: Props) {
                                     Produk Unggulan Parigi
                                 </h2>
                                 <p className="text-[1rem] text-[#4a6258]">
-                                    Komoditas unggulan dari petani lokal Parigi — data produksi BPS 2024.
+                                    Komoditas unggulan dari petani lokal Parigi - data produksi BPS 2024.
                                 </p>
                             </div>
                             <Link
