@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\OrderService;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,5 +36,24 @@ class OrderController extends Controller
         return Inertia::render('Orders/Show', [
             'order' => $order,
         ]);
+    }
+
+    public function repay(int $id): JsonResponse
+    {
+        try {
+            $result = $this->orderService->repayOrder(auth()->id(), $id);
+
+            return response()->json([
+                'success'    => true,
+                'snap_token' => $result['snap_token'],
+                'client_key' => $result['client_key'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }

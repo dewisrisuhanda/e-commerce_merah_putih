@@ -21,12 +21,8 @@ use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
- Route::get('/produk', [ProductController::class, 'index'])->name('products.index');
- Route::get('/produk/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/produk', [ProductController::class, 'index'])->name('products.index');
+Route::get('/produk/{slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -42,6 +38,7 @@ Route::middleware('auth')->group(function () {
     // Orders
     Route::get('/orders',        [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}',   [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{id}/repay',  [OrderController::class, 'repay'])->name('orders.repay');
 
     // Checkout
     Route::get('/checkout',  [CheckoutController::class, 'index'])->name('checkout.index');

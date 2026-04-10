@@ -3,12 +3,11 @@
 namespace App\Repositories;
 
 use App\Models\Order;
+use App\Models\Payment;
 
 class OrderRepository
 {
-    /**
-     * Semua pesanan milik user, diurutkan terbaru.
-     */
+
     public function getByUser(int $userId): array
     {
         return Order::where('user_id', $userId)
@@ -26,20 +25,14 @@ class OrderRepository
             ->toArray();
     }
 
-    /**
-     * Satu pesanan milik user tertentu (security: user hanya lihat pesanannya sendiri).
-     */
     public function findByUserAndId(int $userId, int $orderId): ?Order
     {
         return Order::where('user_id', $userId)
             ->where('id', $orderId)
-            ->with(['shippingMethod', 'paymentMethod', 'orderDetails.product.primaryImage'])
+            ->with(['shippingMethod', 'paymentMethod', 'orderDetails.product.primaryImage', 'user'])
             ->first();
     }
 
-    /**
-     * Format pesanan untuk halaman detail.
-     */
     public function formatDetail(Order $order): array
     {
         return [
@@ -64,5 +57,32 @@ class OrderRepository
                 'image'         => $detail->product?->primaryImage?->url ?? null,
             ])->toArray(),
         ];
+    }
+
+    // Hanya simpan/update payment record — tidak ada logika bisnis
+    public function upsertPayment(Order $order, string $midtransOrderId, string $snapToken): void
+    {
+        $payment = $order->payment;
+
+        if ($payment) {
+            $payment->update([
+                'snap_token'        => $snapToken,
+                'midtrans_order_id' => $midtransOrderId,
+                'status'            => 'pending',
+            ]);
+        } else {
+            Payment::create([
+                'order_id'          => $order->id,
+                'midtrans_order_id' => $midtransOrderId,
+                'snap_token'        => $snapToken,
+                'gross_amount'      => $order->total_amount,
+                'status'            => 'pending',
+            ]);
+        }
+    }
+
+    public function updateOrderStatus(Order $order, string $status): void
+    {
+        $order->update(['status' => $status]);
     }
 }

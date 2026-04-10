@@ -12,7 +12,6 @@ class CheckoutService implements \App\Services\CheckoutService
     public function __construct(CheckoutRepository $checkoutRepository) {
         $this->checkoutRepository = $checkoutRepository;
 
-        // Konfigurasi Midtrans SDK
         Config::$serverKey    = config('midtrans.server_key');
         Config::$clientKey    = config('midtrans.client_key');
         Config::$isProduction = config('midtrans.is_production');
@@ -50,7 +49,7 @@ class CheckoutService implements \App\Services\CheckoutService
         $subtotal = array_sum(array_column($items, 'subtotal'));
 
         // Hitung ongkir sesuai metode pengiriman
-        $shippingCost = $data['shipping_method_code'] === 'pickup' ? 0 : 5000;
+        $shippingCost = $data['shipping_method_code'] === 'ambil' ? 0 : 5000;
         $totalAmount  = $subtotal + $shippingCost;
 
         // Buat order di DB

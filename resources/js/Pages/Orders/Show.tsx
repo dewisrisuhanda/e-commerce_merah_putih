@@ -1,4 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 
 // ─── Types ────────────────────────────────────────────────
@@ -18,12 +19,14 @@ interface Order {
     created_at: string;
     status: string;
     payment_method: string;
+    payment_method_code: string;
     shipping_method: string;
     address: string | null;
     subtotal: string;
     shipping_cost: string;
     total_amount: string;
     notes: string | null;
+    snap_token: string | null; // dari repository, hanya ada kalau pending_payment
     items: OrderItem[];
 }
 
@@ -41,10 +44,101 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
     canceled:        { bg: 'bg-red-100',    text: 'text-red-600',    label: 'Dibatalkan' },
 };
 
+declare global {
+    interface Window {
+        snap: {
+            pay: (token: string, options: {
+                onSuccess: (result: any) => void;
+                onPending: (result: any) => void;
+                onError:   (result: any) => void;
+                onClose:   () => void;
+            }) => void;
+        };
+    }
+}
+
 // ─── Component ────────────────────────────────────────────
 export default function Show({ order }: Props) {
-    const render = (name: string) => route().has(name) ? route(name) : '#';
-    const status = STATUS_STYLES[order.status] ?? { bg: 'bg-gray-100', text: 'text-gray-600', label: order.status };
+    const r  = (name: string, params?: any) => route().has(name) ? route(name, params) : '#';
+    const st = STATUS_STYLES[order.status] ?? { bg: 'bg-gray-100', text: 'text-gray-600', label: order.status };
+
+    const isPendingPayment = order.status === 'pending_payment';
+    const isCashMethod     = order.payment_method_code === 'cash';
+    const canRepay         = isPendingPayment && !isCashMethod;
+
+    const [repayLoading, setRepayLoading]   = useState(false);
+    const [repayError, setRepayError]       = useState<string | null>(null);
+    const [snapReady, setSnapReady]         = useState(false);
+
+    // Load Snap.js hanya kalau pesanan bisa dibayar ulang
+    useEffect(() => {
+        if (!canRepay) return;
+
+        if (document.getElementById('midtrans-snap-script')) {
+            setSnapReady(true);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id  = 'midtrans-snap-script';
+        script.src = import.meta.env.VITE_MIDTRANS_IS_PRODUCTION === 'true'
+            ? 'https://app.midtrans.com/snap/snap.js'
+            : 'https://app.sandbox.midtrans.com/snap/snap.js';
+        script.setAttribute('data-client-key', import.meta.env.VITE_MIDTRANS_CLIENT_KEY ?? '');
+        script.onload  = () => setSnapReady(true);
+        script.onerror = () => console.error('Gagal load Midtrans Snap.js');
+        document.body.appendChild(script);
+
+        return () => {
+            const s = document.getElementById('midtrans-snap-script');
+            if (s) s.remove();
+        };
+    }, [canRepay]);
+
+    const handleRepay = async () => {
+        setRepayError(null);
+        setRepayLoading(true);
+
+        try {
+            // Selalu generate token baru via endpoint repay
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+            const res = await fetch(r('orders.repay', order.id), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept':       'application/json',
+                },
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                setRepayError(data.message ?? 'Gagal membuka pembayaran.');
+                setRepayLoading(false);
+                return;
+            }
+
+            window.snap.pay(data.snap_token, {
+                onSuccess: () => {
+                    router.reload();
+                },
+                onPending: () => {
+                    router.reload();
+                },
+                onError: () => {
+                    setRepayError('Pembayaran gagal. Silakan coba lagi.');
+                    setRepayLoading(false);
+                },
+                onClose: () => {
+                    setRepayLoading(false);
+                },
+            });
+
+        } catch (e) {
+            setRepayError('Terjadi kesalahan jaringan. Silakan coba lagi.');
+            setRepayLoading(false);
+        }
+    };
 
     return (
         <MainLayout>
@@ -56,19 +150,50 @@ export default function Show({ order }: Props) {
 
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-3 mb-6">
-                    <Link
-                        href={render('orders.index')}
-                        className="text-sm text-[#40916c] border border-[#40916c]/30 px-3 py-1.5 rounded-lg no-underline transition hover:bg-[#40916c] hover:text-white"
-                    >
+                    <Link href={r('orders.index')} className="text-sm text-[#40916c] border border-[#40916c]/30 px-3 py-1.5 rounded-lg no-underline transition hover:bg-[#40916c] hover:text-white">
                         ← Kembali
                     </Link>
-                    <h5
-                        className="text-xl font-black text-[#1a3a2a] m-0"
-                        style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
+                    <h5 className="text-xl font-black text-[#1a3a2a] m-0" style={{ fontFamily: "'Playfair Display', serif" }}>
                         Detail Pesanan #{order.order_number}
                     </h5>
                 </div>
+
+                {/* Banner Bayar Ulang — muncul kalau pending_payment & bukan cash - */}
+                {canRepay && (
+                    <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                            <span className="text-2xl flex-shrink-0">⏳</span>
+                            <div>
+                                <p className="font-bold text-amber-800 text-sm">Pesanan belum dibayar</p>
+                                <p className="text-amber-700 text-xs mt-0.5">
+                                    Kamu menutup popup pembayaran sebelumnya. Klik tombol di bawah untuk lanjutkan pembayaran.
+                                </p>
+                                {repayError && (
+                                    <p className="text-red-500 text-xs mt-1 font-medium">{repayError}</p>
+                                )}
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleRepay}
+                            disabled={repayLoading || !snapReady}
+                            className="flex-shrink-0 bg-amber-500 text-white font-bold text-sm px-5 py-2.5 rounded-xl border-none cursor-pointer hover:bg-amber-600 transition disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+                        >
+                            {repayLoading ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                    </svg>
+                                    Memproses...
+                                </span>
+                            ) : !snapReady ? (
+                                'Memuat...'
+                            ) : (
+                                '💳 Lanjutkan Pembayaran'
+                            )}
+                        </button>
+                    </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-5">
 
@@ -83,8 +208,8 @@ export default function Show({ order }: Props) {
                                     {
                                         label: 'Status',
                                         value: (
-                                            <span className={`inline-block text-[0.72rem] font-bold px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
-                                                {status.label}
+                                            <span className={`inline-block text-[0.72rem] font-bold px-2.5 py-0.5 rounded-full ${st.bg} ${st.text}`}>
+                                                {st.label}
                                             </span>
                                         ),
                                     },
@@ -121,7 +246,6 @@ export default function Show({ order }: Props) {
                         <div className="flex flex-col divide-y divide-gray-50">
                             {order.items.map(item => (
                                 <div key={item.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                                    {/* Image */}
                                     <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-[#d8f3dc]">
                                         {item.image ? (
                                             <img
@@ -134,22 +258,16 @@ export default function Show({ order }: Props) {
                                             <div className="w-full h-full flex items-center justify-center text-[#40916c] text-2xl">📦</div>
                                         )}
                                     </div>
-
-                                    {/* Info */}
                                     <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-[#1a3a2a] text-sm mb-0.5 truncate">{item.product_name}</p>
-                                        <p className="text-gray-400 text-xs">
-                                            {item.product_price} × {item.quantity}
-                                        </p>
+                                        <p className="text-gray-400 text-xs">{item.product_price} × {item.quantity}</p>
                                     </div>
-
-                                    {/* Subtotal */}
                                     <span className="font-bold text-[#2d6a4f] text-sm flex-shrink-0">{item.subtotal}</span>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Total Summary */}
+                        {/* Total */}
                         <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                             <div className="flex justify-between text-sm text-gray-500">
                                 <span>Subtotal</span>
@@ -163,10 +281,7 @@ export default function Show({ order }: Props) {
                             </div>
                             <div className="flex justify-between font-bold text-[#1a3a2a] text-base pt-2 border-t border-gray-100">
                                 <span>Total</span>
-                                <span
-                                    className="text-[#2d6a4f]"
-                                    style={{ fontFamily: "'Playfair Display', serif" }}
-                                >
+                                <span className="text-[#2d6a4f]" style={{ fontFamily: "'Playfair Display', serif" }}>
                                     {order.total_amount}
                                 </span>
                             </div>
