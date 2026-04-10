@@ -70,9 +70,16 @@ export default function Index({
     const [error, setError]     = useState<string | null>(null);
     const [snapReady, setSnapReady] = useState(false);
 
-    const shippingCost = 0; // bisa dikembangkan per metode
+    const isPickup     = selectedShipping?.code === 'ambil';
+    const shippingCost: number = isPickup ? 0 : 5000; // gratis kalau ambil di toko
     const totalAmount  = subtotal + shippingCost;
-    const needsAddress = selectedShipping?.code !== 'pickup';
+    const isCash      = selectedPayment?.code === 'cash';
+    const needsAddress = !isPickup; // ambil di toko → tidak perlu alamat
+
+    // Reset alamat otomatis saat user pilih pickup
+    useEffect(() => {
+        if (!needsAddress) setAddress('');
+    }, [needsAddress]);
 
 
     useEffect(() => {
@@ -104,11 +111,13 @@ export default function Index({
             setError('Pilih metode pengiriman dan pembayaran terlebih dahulu.');
             return;
         }
-        if (needsAddress && !address.trim()) {
+        // Alamat hanya wajib kalau bukan pickup
+        if (!isPickup && !address.trim()) {
             setError('Alamat pengiriman wajib diisi.');
             return;
         }
-        if (!snapReady) {
+        // Snap hanya wajib ready kalau bukan cash
+        if (!isCash && !snapReady) {
             setError('Sistem pembayaran belum siap, tunggu sebentar lalu coba lagi.');
             return;
         }
@@ -130,6 +139,7 @@ export default function Index({
                     shipping_method_id:   selectedShipping.id,
                     shipping_method_code: selectedShipping.code,
                     payment_method_id:    selectedPayment.id,
+                    payment_method_code:  selectedPayment.code, // ← tambah ini
                     address:              needsAddress ? address : null,
                     notes:                notes || null,
                 }),
@@ -142,16 +152,21 @@ export default function Index({
                 setLoading(false);
                 return;
             }
-            
+
             const orderUrl = render('orders.show', data.order_id);
 
+            // - Cash: langsung redirect ke detail pesanan, skip Midtrans
+            if (isCash) {
+                router.visit(orderUrl);
+                return;
+            }
+
+            // ── Non-cash: buka Midtrans Snap popup ──
             window.snap.pay(data.snap_token, {
                 onSuccess: (_result) => {
-                    // Bayar berhasil → ke detail pesanan
                     router.visit(orderUrl);
                 },
                 onPending: (_result) => {
-                    // Menunggu transfer → ke detail pesanan juga
                     router.visit(orderUrl);
                 },
                 onError: (_result) => {
@@ -248,7 +263,7 @@ export default function Index({
                                         />
                                         <div>
                                             <p className="font-semibold text-sm text-[#1a3a2a]">
-                                                {method.code === 'pickup' ? '🏪' : '🚚'} {method.name}
+                                                {method.code === 'antar' ? '🏪' : '🚚'} {method.name}
                                             </p>
                                             {method.description && (
                                                 <p className="text-xs text-gray-400 mt-0.5">{method.description}</p>
@@ -258,20 +273,40 @@ export default function Index({
                                 ))}
                             </div>
 
-                            {needsAddress && (
-                                <div className="mt-4">
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                                        Alamat Pengiriman <span className="text-red-500">*</span>
-                                    </label>
+                            {/* Alamat: selalu tampil, di-block saat antar */}
+                            <div className="mt-4">
+                                <label className={`block text-xs font-semibold mb-1.5 transition ${
+                                    needsAddress ? 'text-gray-600' : 'text-gray-400'
+                                }`}>
+                                    Alamat Pengiriman
+                                    {needsAddress && <span className="text-red-500"> *</span>}
+                                    {!needsAddress && <span className="text-gray-400 font-normal"> (tidak diperlukan)</span>}
+                                </label>
+                                <div className="relative">
                                     <textarea
                                         value={address}
                                         onChange={e => setAddress(e.target.value)}
                                         rows={3}
                                         placeholder="Jl. Contoh No. 1, Kelurahan, Kecamatan, Kota"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm resize-none outline-none transition focus:border-[#40916c] focus:ring-2 focus:ring-[#40916c]/15"
+                                        className={`w-full px-4 py-2.5 border rounded-xl text-sm resize-none outline-none transition ${
+                                            needsAddress
+                                                ? 'border-gray-300 text-[#1a3a2a] bg-white focus:border-[#40916c] focus:ring-2 focus:ring-[#40916c]/15'
+                                                : 'border-gray-200 text-gray-400 bg-gray-50'
+                                        }`}
                                     />
+                                    {/* Overlay: block semua interaksi saat pickup dipilih */}
+                                    {!needsAddress && (
+                                        <div
+                                            className="absolute inset-0 rounded-xl bg-gray-100/60 cursor-not-allowed pointer-events-auto"
+                                            title="Tidak diperlukan saat ambil di toko"
+                                            onClick={e => e.preventDefault()}
+                                        />
+                                    )}
                                 </div>
-                            )}
+                                {!needsAddress && (
+                                    <p className="mt-1 text-xs text-gray-400">🏪 Tidak diperlukan — pembeli ambil langsung di toko</p>
+                                )}
+                            </div>
                         </div>
 
                         {/* Metode Pembayaran */}
@@ -346,7 +381,7 @@ export default function Index({
 
                             <button
                                 onClick={handleCheckout}
-                                disabled={loading || items.length === 0 || !snapReady}
+                                disabled={loading || items.length === 0 || (!isCash && !snapReady)}
                                 className="mt-5 w-full bg-[#40916c] text-white font-bold py-3 rounded-xl border-none cursor-pointer transition hover:bg-[#2d6a4f] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 text-sm"
                             >
                                 {loading ? (
@@ -357,8 +392,10 @@ export default function Index({
                                         </svg>
                                         Memproses...
                                     </span>
-                                ) : !snapReady ? (
+                                ) : !isCash && !snapReady ? (
                                     'Memuat sistem pembayaran...'
+                                ) : isCash ? (
+                                    'Buat Pesanan →'
                                 ) : (
                                     'Bayar Sekarang →'
                                 )}
@@ -372,8 +409,13 @@ export default function Index({
                             </Link>
 
                             <div className="mt-4 flex items-center gap-2 text-xs text-gray-400 justify-center">
-                                <span>🔒</span>
-                                <span>Pembayaran aman diproses oleh Midtrans</span>
+                                <span>{isCash ? '💵' : '🔒'}</span>
+                                <span>
+                                    {isCash
+                                        ? 'Bayar tunai saat barang diterima / di toko'
+                                        : 'Pembayaran aman diproses oleh Midtrans'
+                                    }
+                                </span>
                             </div>
                         </div>
                     </div>

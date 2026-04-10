@@ -37,13 +37,24 @@ class CheckoutController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+
+        $shippingCode = $request->input('shipping_method_code', '');
+        $addressRule = ($shippingCode !== 'ambil')
+            ? ['required', 'string', 'max:500']
+            : ['nullable', 'string', 'max:500'];
+
         $request->validate([
             'shipping_method_id'   => ['required', 'exists:shipping_methods,id'],
             'payment_method_id'    => ['required', 'exists:payment_methods,id'],
             'shipping_method_code' => ['required', 'string'],
-            'address'              => ['nullable', 'string', 'max:500'],
+            'payment_method_code'  => ['required', 'string'],
+            'address'              => $addressRule,
             'notes'                => ['nullable', 'string', 'max:500'],
-        ]);
+        ],
+            [
+                'address.required' => 'Alamat pengiriman wajib diisi untuk metode pengiriman ke rumah.',
+            ]
+        );
 
         try {
             $result = $this->checkoutService->processCheckout(
@@ -52,6 +63,7 @@ class CheckoutController extends Controller
                     'shipping_method_id',
                     'payment_method_id',
                     'shipping_method_code',
+                    'payment_method_code',
                     'address',
                     'notes',
                 ])
@@ -63,6 +75,7 @@ class CheckoutController extends Controller
                 'client_key'   => $result['client_key'],
                 'order_number' => $result['order_number'],
                 'order_id'     => $result['order_id'],
+                'is_cash'      => $result['is_cash'] ?? false,
             ]);
 
         } catch (\Exception $e) {

@@ -49,8 +49,8 @@ class CheckoutService implements \App\Services\CheckoutService
         $items    = $this->checkoutRepository->getCartItems($userId);
         $subtotal = array_sum(array_column($items, 'subtotal'));
 
-        // Hitung ongkir (bisa dikembangkan berdasarkan metode pengiriman)
-        $shippingCost = $data['shipping_method_code'] === 'pickup' ? 0 : 0; // saat ini gratis
+        // Hitung ongkir sesuai metode pengiriman
+        $shippingCost = $data['shipping_method_code'] === 'pickup' ? 0 : 5000;
         $totalAmount  = $subtotal + $shippingCost;
 
         // Buat order di DB
@@ -68,6 +68,30 @@ class CheckoutService implements \App\Services\CheckoutService
 
         // Midtrans order ID = order_number agar mudah di-trace
         $midtransOrderId = $order->order_number;
+
+        // ── Cash: skip Midtrans, langsung return tanpa snap_token
+        if ($data['payment_method_code'] === 'cash') {
+            // Simpan payment record dengan status settlement (cash langsung dianggap confirmed)
+            $this->checkoutRepository->createPayment(
+                orderId:         $order->id,
+                midtransOrderId: $midtransOrderId,
+                grossAmount:     $totalAmount,
+                snapToken:       '', // tidak ada snap token untuk cash
+            );
+
+            // Update order status langsung ke processing (skip pending_payment)
+            $order->update(['status' => 'processing']);
+
+            $this->checkoutRepository->clearCart($userId);
+
+            return [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'snap_token'   => null,
+                'client_key'   => null,
+                'is_cash'      => true,
+            ];
+        }
 
         // Siapkan payload untuk Midtrans Snap
         $params = [
