@@ -129,3 +129,7 @@ INSERT INTO `order_details` (
       (8,  5,  'Lengkuas Segar',    10000, 1, 10000, NOW(), NOW()),
       (9,  7,  'Pisang Kepok Segar', 8000, 1,  8000, NOW(), NOW()),
       (10, 10, 'Pepaya California',  8000, 1,  8000, NOW(), NOW());
+
+select * from payments;
+select * from orders;
+select * from order_details;

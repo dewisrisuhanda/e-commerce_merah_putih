@@ -7,9 +7,11 @@ use App\Services\Admin\DashboardService;
 use App\Services\Admin\ReportService;
 use App\Services\Admin\UserService;
 use App\Services\CartService;
+use App\Services\CheckoutService;
 use App\Services\HomeService;
 use App\Services\OrderService;
 use App\Services\ProductService;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
         UserService::class => \App\Services\Admin\Implements\UserService::class,
         \App\Services\Admin\OrderService::class => \App\Services\Admin\Implements\OrderService::class,
         \App\Services\Admin\ProductService::class => \App\Services\Admin\Implements\ProductService::class,
+
+        CheckoutService::class => \App\Services\Implements\CheckoutService::class,
     ];
     /**
      * Register any application services.
@@ -42,5 +46,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        URL::forceScheme('https');
     }
 }

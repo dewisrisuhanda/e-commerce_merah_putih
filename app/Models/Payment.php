@@ -14,9 +14,15 @@ class Payment extends Model
 
     protected $table    = 'payments';
     protected $fillable = [
-        'order_id', 'midtrans_order_id', 'midtrans_transaction_id',
-        'snap_token', 'payment_type', 'gross_amount',
-        'status', 'midtrans_response', 'paid_at',
+        'order_id',
+        'midtrans_order_id',
+        'midtrans_transaction_id',
+        'snap_token',
+        'payment_type',
+        'gross_amount',
+        'status',
+        'midtrans_response',
+        'paid_at',
     ];
 
     protected $casts = [
