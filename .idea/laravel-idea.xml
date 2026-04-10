@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="InertiaPackage">
+    <option name="directoryPaths">
+      <list />
+    </option>
+  </component>
   <component name="LaravelIdeaMainSettings">
     <option name="codeGeneration">
       <LaravelCodeGeneration>
@@ -11,7 +16,6 @@
         </option>
       </LaravelCodeGeneration>
     </option>
-    <option name="frameworkFound" value="true" />
     <option name="laravelBasePath" value="Parigi_Marketplace" />
     <option name="userClassName" value="\App\Models\User" />
   </component>

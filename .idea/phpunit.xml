@@ -6,6 +6,8 @@
         <option value="$PROJECT_DIR$/legacy/tests" />
         <option value="$PROJECT_DIR$/Parigi_Marketplace/tests/Unit" />
         <option value="$PROJECT_DIR$/Parigi_Marketplace/tests/Feature" />
+        <option value="$PROJECT_DIR$/tests/Unit" />
+        <option value="$PROJECT_DIR$/tests/Feature" />
       </list>
     </option>
   </component>
