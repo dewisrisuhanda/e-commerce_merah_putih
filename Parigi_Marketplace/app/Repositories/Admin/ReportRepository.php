@@ -5,6 +5,8 @@ namespace App\Repositories\Admin;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ReportRepository
 {
@@ -55,5 +57,33 @@ class ReportRepository
                 'status'          => $order->status,
             ])
             ->toArray();
+    }
+
+    public function getMonthlyChartData(int $year = null): array
+    {
+        $year = $year ?? Carbon::now()->year;
+
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+            'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        // Query total per bulan dari DB
+        $rows = Order::where('status', 'completed')
+            ->whereYear('created_at', $year)
+            ->select(
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('SUM(total_amount) as total')
+            )
+            ->groupBy('month')
+            ->pluck('total', 'month'); // [1 => 2100000, 3 => 4500000, ...]
+
+        $labels = [];
+        $data   = [];
+
+        foreach (range(1, 12) as $month) {
+            $labels[] = $monthNames[$month - 1];
+            $data[]   = (int) ($rows[$month] ?? 0);
+        }
+
+        return compact('labels', 'data');
     }
 }

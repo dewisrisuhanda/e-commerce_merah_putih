@@ -19,6 +19,7 @@ class ReportService implements \App\Services\Admin\ReportService
             'totalOrders'  => $stats['total_orders'],
             'totalRevenue' => 'Rp ' . number_format($stats['total_revenue'], 0, ',', '.'),
             'products'     => $this->reportRepository->getProductList(),
+            'chartData'    => $this->reportRepository->getMonthlyChartData(),
         ];
     }
 

@@ -8,4 +8,5 @@ interface DashboardService
     public function getRecentProducts(): array;
     public function getRecentOrders(): array;
     public function getCategoryCounts(): array;
+    public function getDailyChartData(): array;
 }

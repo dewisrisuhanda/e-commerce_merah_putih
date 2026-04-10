@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardRepository
 {
@@ -90,5 +92,37 @@ class DashboardRepository
                 'count' => $category->products_count,
             ])
             ->toArray();
+    }
+
+
+    public function getDailyChartData(): array
+    {
+        // Ambil 7 hari terakhir (hari ini - 6 hari)
+        $days = collect(range(6, 0))->map(fn ($i) => Carbon::today()->subDays($i));
+
+        // Query total per hari dari DB
+        $rows = Order::where('status', 'completed')
+            ->whereBetween('created_at', [
+                Carbon::today()->subDays(6)->startOfDay(),
+                Carbon::today()->endOfDay(),
+            ])
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_amount) as total')
+            )
+            ->groupBy('date')
+            ->pluck('total', 'date'); // ['2026-04-04' => 520000, ...]
+
+        $labels = [];
+        $data   = [];
+
+        $dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+        foreach ($days as $day) {
+            $labels[] = $dayNames[$day->dayOfWeek];
+            $data[]   = (int) ($rows[$day->toDateString()] ?? 0);
+        }
+
+        return compact('labels', 'data');
     }
 }

@@ -18,6 +18,7 @@ class DashboardController extends Controller
             'recentProducts' => $this->dashboardService->getRecentProducts(),
             'recentOrders'   => $this->dashboardService->getRecentOrders(),
             'categoryCounts' => $this->dashboardService->getCategoryCounts(),
+            'dailyChart'     => $this->dashboardService->getDailyChartData(),
         ]);
     }
 }

@@ -36,4 +36,9 @@ class DashboardService implements \App\Services\Admin\DashboardService
     {
         return $this->dashboardRepository->getCategoryCounts();
     }
+
+    public function getDailyChartData(): array
+    {
+        return $this->dashboardRepository->getDailyChartData();
+    }
 }

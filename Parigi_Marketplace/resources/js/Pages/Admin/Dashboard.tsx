@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-// ─── Types ────────────────────────────────────────────────
+// Types
 interface StatCard {
     label: string;
     value: string;
@@ -35,11 +35,18 @@ interface CategoryCount {
     count: number;
 }
 
+// Data chart dari DB
+interface ChartData {
+    labels: string[]; // ['Sen', 'Sel', 'Rab', ...]
+    data: number[];   // [520000, 740000, ...]
+}
+
 interface Props {
     stats: StatCard[];
     recentProducts: Product[];
     recentOrders: Order[];
     categoryCounts: CategoryCount[];
+    dailyChart: ChartData; // ← dari DashboardController
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
@@ -66,45 +73,81 @@ const CATEGORY_ICONS: Record<string, string> = {
     'Biofarmaka': '🌱', 'Sayuran': '🥬', 'Kerajinan': '🎨',
 };
 
-export default function Dashboard({ stats, recentProducts, recentOrders, categoryCounts }: Props) {
-    const render = (name: string, params?: any) => route().has(name) ? route(name, params) : '#';
+export default function Dashboard({
+    stats,
+    recentProducts,
+    recentOrders,
+    categoryCounts,
+    dailyChart,
+}: Props) {
+    const r = (name: string, params?: any) => route().has(name) ? route(name, params) : '#';
     const chartRef = useRef<HTMLCanvasElement>(null);
     const donutRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         if (!chartRef.current || !donutRef.current) return;
 
-        import('chart.js/auto').then((ChartModule) => {
-            const Chart = ChartModule.default;
+        // Warna bar: hijau gelap untuk hari dengan nilai tertinggi, hijau muda sisanya
+        const maxVal = Math.max(...dailyChart.data, 1);
+        const barColors = dailyChart.data.map(v =>
+            v === maxVal ? '#22a046' : '#d4f5de'
+        );
 
+        import('chart.js/auto').then(({ default: Chart }) => {
+            // ── Bar chart - data harian  ──
             new Chart(chartRef.current!, {
                 type: 'bar',
                 data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    labels: dailyChart.labels,
                     datasets: [{
-                        data: [520000, 740000, 960000, 680000, 1100000, 800000, 890000],
-                        backgroundColor: ['#d4f5de','#d4f5de','#22a046','#22a046','#22a046','#d4f5de','#22a046'],
-                        borderRadius: 6, borderSkipped: false,
+                        data: dailyChart.data,
+                        backgroundColor: barColors,
+                        borderRadius: 6,
+                        borderSkipped: false,
                     }],
                 },
                 options: {
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => 'Rp ' + ctx.raw.toLocaleString('id-ID') } } },
-                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 11 } } } },
-                    responsive: true, maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx: any) =>
+                                    'Rp ' + (ctx.raw as number).toLocaleString('id-ID'),
+                            },
+                        },
+                    },
+                    scales: {
+                        y: { display: false },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11 } },
+                        },
+                    },
+                    responsive: true,
+                    maintainAspectRatio: true,
                 },
             });
 
+            // - Donut chart — distribusi kategori -
             const catData = categoryCounts.slice(0, 4);
             new Chart(donutRef.current!, {
                 type: 'doughnut',
                 data: {
                     labels: catData.map(c => c.name),
-                    datasets: [{ data: catData.map(c => c.count), backgroundColor: ['#22a046','#2dc653','#d4f5de','#6b7280'], borderWidth: 0 }],
+                    datasets: [{
+                        data: catData.map(c => c.count),
+                        backgroundColor: ['#22a046', '#2dc653', '#d4f5de', '#6b7280'],
+                        borderWidth: 0,
+                    }],
                 },
-                options: { cutout: '68%', plugins: { legend: { display: false } }, responsive: false },
+                options: {
+                    cutout: '68%',
+                    plugins: { legend: { display: false } },
+                    responsive: false,
+                },
             });
         });
-    }, []);
+    }, [dailyChart, categoryCounts]);
 
     return (
         <AdminLayout title="Dashboard" breadcrumb="Admin → Dashboard" activeMenu="dashboard">
@@ -129,20 +172,39 @@ export default function Dashboard({ stats, recentProducts, recentOrders, categor
 
                 {/* ── Charts ── */}
                 <div className="grid lg:grid-cols-3 gap-5">
+
+                    {/* Bar chart — pendapatan 7 hari terakhir */}
                     <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden">
                         <div className="px-5 py-4 border-b border-gray-100">
-                            <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>📈 Penjualan Minggu Ini</div>
-                            <div className="text-xs text-gray-400 mt-0.5">Pendapatan harian</div>
+                            <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>
+                                📈 Penjualan 7 Hari Terakhir
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">Pendapatan harian (pesanan selesai)</div>
                         </div>
-                        <div className="p-5"><canvas ref={chartRef} height={80} /></div>
+                        <div className="p-5">
+                            {/* Tampilkan pesan kalau semua data 0 */}
+                            {dailyChart.data.every(v => v === 0) ? (
+                                <div className="flex items-center justify-center h-20 text-gray-300 text-sm">
+                                    Belum ada data penjualan minggu ini
+                                </div>
+                            ) : (
+                                <canvas ref={chartRef} height={80} />
+                            )}
+                        </div>
                     </div>
+
+                    {/* Donut chart — kategori */}
                     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                         <div className="px-5 py-4 border-b border-gray-100">
                             <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>🏷️ Kategori</div>
                             <div className="text-xs text-gray-400 mt-0.5">Distribusi produk</div>
                         </div>
                         <div className="p-5 flex flex-col items-center gap-4">
-                            <canvas ref={donutRef} width={140} height={140} />
+                            {categoryCounts.every(c => c.count === 0) ? (
+                                <div className="text-gray-300 text-sm py-8">Belum ada produk</div>
+                            ) : (
+                                <canvas ref={donutRef} width={140} height={140} />
+                            )}
                             <div className="w-full space-y-2">
                                 {categoryCounts.slice(0, 4).map((cat, i) => (
                                     <div key={i} className="flex items-center justify-between text-xs">
@@ -160,13 +222,12 @@ export default function Dashboard({ stats, recentProducts, recentOrders, categor
 
                 {/* ── Recent Products + Orders ── */}
                 <div className="grid lg:grid-cols-2 gap-5">
+
                     {/* Products */}
                     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>📦 Produk Terbaru</div>
-                                <div className="text-xs text-gray-400 mt-0.5">Ditambahkan terakhir</div>
-                            </div>
+                        <div className="px-5 py-4 border-b border-gray-100">
+                            <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>📦 Produk Terbaru</div>
+                            <div className="text-xs text-gray-400 mt-0.5">Ditambahkan terakhir</div>
                         </div>
                         <table className="w-full text-xs">
                             <thead>
@@ -192,26 +253,33 @@ export default function Dashboard({ stats, recentProducts, recentOrders, categor
                                             </div>
                                         </td>
                                         <td className="px-5 py-3 font-semibold text-[#1a7c36]">{p.price}</td>
-                                        <td className={`px-5 py-3 font-semibold ${p.quantity < 20 ? 'text-red-500' : 'text-gray-600'}`}>{p.quantity}</td>
+                                        <td className={`px-5 py-3 font-semibold ${p.quantity < 20 ? 'text-red-500' : 'text-gray-600'}`}>
+                                            {p.quantity}
+                                        </td>
                                         <td className="px-5 py-3">
-                                            <Link href={render('admin.products.edit', p.slug)} className="text-[11px] font-semibold text-gray-500 border border-gray-200 px-2.5 py-1 rounded-lg no-underline hover:bg-gray-100 transition">Edit</Link>
+                                            <Link
+                                                href={r('admin.products.edit', p.slug)}
+                                                className="text-[11px] font-semibold text-gray-500 border border-gray-200 px-2.5 py-1 rounded-lg no-underline hover:bg-gray-100 transition"
+                                            >
+                                                Edit
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                         <div className="px-5 py-3 border-t border-gray-50">
-                            <Link href={render('admin.products.index')} className="text-xs text-[#22a046] no-underline hover:underline font-semibold">Lihat Semua Produk →</Link>
+                            <Link href={r('admin.products.index')} className="text-xs text-[#22a046] no-underline hover:underline font-semibold">
+                                Lihat Semua Produk →
+                            </Link>
                         </div>
                     </div>
 
                     {/* Orders */}
                     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>🛍️ Pesanan Terbaru</div>
-                                <div className="text-xs text-gray-400 mt-0.5">Update terkini</div>
-                            </div>
+                        <div className="px-5 py-4 border-b border-gray-100">
+                            <div className="font-bold text-sm text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>🛍️ Pesanan Terbaru</div>
+                            <div className="text-xs text-gray-400 mt-0.5">Update terkini</div>
                         </div>
                         <div className="divide-y divide-gray-50">
                             {recentOrders.length === 0 ? (
@@ -231,13 +299,20 @@ export default function Dashboard({ stats, recentProducts, recentOrders, categor
                                                 <span className="text-[10px] text-gray-400">{order.created_at}</span>
                                             </div>
                                         </div>
-                                        <Link href={render('admin.orders.show', order.id)} className="text-[11px] font-semibold text-gray-500 border border-gray-200 px-2.5 py-1 rounded-lg no-underline hover:bg-gray-100 transition flex-shrink-0">Detail</Link>
+                                        <Link
+                                            href={r('admin.orders.show', order.id)}
+                                            className="text-[11px] font-semibold text-gray-500 border border-gray-200 px-2.5 py-1 rounded-lg no-underline hover:bg-gray-100 transition flex-shrink-0"
+                                        >
+                                            Detail
+                                        </Link>
                                     </div>
                                 );
                             })}
                         </div>
                         <div className="px-5 py-3 border-t border-gray-50">
-                            <Link href={render('admin.orders.index')} className="text-xs text-[#22a046] no-underline hover:underline font-semibold">Lihat Semua Pesanan →</Link>
+                            <Link href={r('admin.orders.index')} className="text-xs text-[#22a046] no-underline hover:underline font-semibold">
+                                Lihat Semua Pesanan →
+                            </Link>
                         </div>
                     </div>
                 </div>
