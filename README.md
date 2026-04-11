@@ -1,59 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🌿 Parigi Marketplace
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Marketplace lokal Kecamatan Parigi, Pangandaran - menghubungkan petani, nelayan, dan pengrajin lokal dengan pembeli.
 
-## About Laravel
+Built with **Laravel 12 + Inertia.js + React (TypeScript)** + **Midtrans** untuk pembayaran.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Layer | Teknologi |
+|---|---|
+| Backend | Laravel 12, PHP 8.2+ |
+| Frontend | React 19 + TypeScript + Inertia.js |
+| Styling | Tailwind CSS v4 |
+| Database | MySQL 8 |
+| Payment | Midtrans Snap |
+| Auth | Laravel Breeze (session-based, Inertia) |
+| Build tool | Vite |
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Fitur Utama
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**Publik**
+- Beranda dengan data komoditas BPS Kec. Parigi
+- Marketplace produk lokal - filter kategori, pencarian, pagination
+- Detail produk dengan galeri gambar
 
-## Laravel Sponsors
+**User (Pembeli)**
+- Melihat katalog produk
+- Keranjang belanja (add, update qty, hapus)
+- Checkout dengan pilihan metode pengiriman & pembayaran
+- Pembayaran online via Midtrans Snap (VA, QRIS, kartu kredit, dll)
+- Pembayaran tunai (cash on delivery / ambil di toko)
+- Riwayat & detail pesanan
+- Bayar ulang pesanan yang masih `pending_payment`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**Admin**
+- Dashboard dengan chart penjualan harian & bulanan (data real dari DB)
+- CRUD produk & kategori
+- Kelola pesanan + update status
+- Kelola pengguna
+- Laporan penjualan & keuangan
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Requirements
 
-## Contributing
+- PHP >= 8.2
+- Composer
+- Node.js >= 20
+- MySQL 8+
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# 1. Clone
+git clone https://github.com/your-username/parigi-marketplace.git
+cd parigi-marketplace
 
-## Security Vulnerabilities
+# 2. Install dependencies
+composer install
+npm install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 3. Setup environment
+cp .env.example .env
+php artisan key:generate
 
-## License
+# 4. Konfigurasi environment.env
+# cek `Environment Variables'`dibawah
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 5. Migrate & seed
+php artisan migrate
+php artisan db:seed
+
+# 6. Storage link (untuk gambar produk)
+php artisan storage:link
+
+# 7. Build assets
+npm run dev
+# atau untuk production:
+npm run build
+
+# 8. Jalankan server
+php artisan serve
+```
+
+---
+
+## Environment Variables
+
+```env
+# App
+APP_NAME="Parigi Marketplace"
+APP_URL=your_app_url
+
+# Database
+DB_CONNECTION=mysql
+DB_DATABASE=parigi_marketplace
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+
+# Midtrans
+MIDTRANS_SERVER_KEY=SB-Mid-server-xxxx
+MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxx
+MIDTRANS_IS_PRODUCTION=false
+MIDTRANS_IS_SANITIZED=true
+MIDTRANS_IS_3DS=true
+
+# Expose ke Vite (frontend)
+VITE_MIDTRANS_CLIENT_KEY="${MIDTRANS_CLIENT_KEY}"
+VITE_MIDTRANS_IS_PRODUCTION="${MIDTRANS_IS_PRODUCTION}"
+```
+
+> Untuk development lokal dengan Midtrans webhook, gunakan **ngrok**:
+> ```bash
+> ngrok http your_port
+> # Set URL ngrok ke Midtrans Dashboard → Settings → Configuration → Payment Notification URL
+> ```
+
+---
+
+## Folder Structure
+
+```
+app/
+├── Http/Controllers/           # Controller (routing + response)
+│   └── Admin/                  # Controller khusus admin
+├── Services/                   # Interface service
+│   ├── Implements/             # Implementasi service (public)
+│   └── Admin/
+│       └── Implements/         # Implementasi service (admin)
+├── Repositories/               # Query DB (public)
+│   └── Admin/                  # Query DB (admin)
+└── Models/                     # Eloquent models
+
+resources/js/
+├── Layouts/
+│   ├── MainLayout.tsx          # Layout publik + navbar
+│   └── AdminLayout.tsx         # Layout admin + sidebar collapsible
+├── pages/
+│   ├── Auth/                   # Login, Register, dll
+│   ├── Cart/                   # Keranjang
+│   ├── Checkout/               # Checkout + Midtrans
+│   ├── Orders/                 # Riwayat & detail pesanan
+│   ├── Products/               # Marketplace publik
+│   ├── Admin/
+│   │   ├── Dashboard.tsx
+│   │   ├── Products/
+│   │   ├── Orders/
+│   │   ├── Users/
+│   │   ├── Categories/
+│   │   └── Reports/
+│   └── Welcome.tsx             # Beranda
+```
+
+---
+
+## Seeder
+
+```bash
+php artisan db:seed --class=KategoriSeeder
+php artisan db:seed --class=MetodePengirimanSeeder
+php artisan db:seed --class=MetodePembayaranSeeder
+php artisan db:seed --class=UserSeeder
+php artisan db:seed --class=ProdukSeeder
+```
+
+---
+
+## Testing Midtrans Sandbox
+
+| Metode | Detail |
+|---|---|
+| Kartu Kredit | `4811 1111 1111 1114` / CVV: `123` / Exp: `01/25` / OTP: `112233` |
+| BCA Virtual Account | Bayar via [simulator](https://simulator.sandbox.midtrans.com/) |
+| QRIS | Scan → auto success di sandbox |
+
+---
+
+<!-- ## License
+
+MIT -->
